@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
 import java.util.Random;
+import java.util.function.Consumer;
 
 public class BedwarsMovementGoal extends GoalSelector {
 
@@ -58,32 +59,7 @@ public class BedwarsMovementGoal extends GoalSelector {
         //before doing any pathfinding, attempt to bridge over the void if necessary
         if (bot.getBedwarsData().getWoolBlocks() > 0) {
             Pos blockPos = bot.getPosition().sub(bot.getPosition().facing().vec().withY(0).mul(0.1, 0, 0.1)).sub(0, 1, 0).asPos();
-            Block block = bot.getInstance().getBlock(blockPos, Block.Getter.Condition.TYPE);
-            if (block.isAir()) {
-                //try place block (only bridge when the block below the target block is not the desired wool color)
-                int air = 0;
-                for (BlockFace blockFace : BlockFace.values()) {
-                    Block other = bot.getInstance().getBlock(blockPos.relative(blockFace), Block.Getter.Condition.TYPE);
-                    if (other.isAir()) {
-                        air++;
-                        continue;
-                    }
-                    if (blockFace == BlockFace.BOTTOM && other.id() != Block.WHITE_WOOL.id()) {
-                        air = BlockFace.values().length;
-                        break;
-                    }
-                }
-                //place block
-                if (air < BlockFace.values().length) {
-                    bot.getInstance().setBlock(blockPos, Block.WHITE_WOOL); //todo fetch team wool color
-                    bot.setItemInHand(PlayerHand.MAIN, ItemStack.of(Material.WHITE_WOOL).builder().build());
-                    bot.setSprinting(false);
-                    bot.setSneaking(true);
-                    //update bedwars data
-                    bot.getBedwarsData().setWoolBlocks(bot.getBedwarsData().getWoolBlocks() - 1);
-                    lastBridging = System.currentTimeMillis();
-                }
-            }
+            tryPlaceBlock(blockPos, (pos) -> lastBridging = System.currentTimeMillis());
         }
 
         Pos target;
@@ -116,10 +92,51 @@ public class BedwarsMovementGoal extends GoalSelector {
             //middle
             target = new Pos(20, 68, 2);
         }
+
+        //more block placement logic, this time for moving upwards
+        boolean isCloseNonY = Math.abs(target.x() - bot.getPosition().x()) < 1 && Math.abs(target.z() - bot.getPosition().z()) < 1;
+        if (isCloseNonY && Math.abs(target.y() - bot.getPosition().y()) > 1 && bot.getBedwarsData().getWoolBlocks() > 0) {
+            tryPlaceBlock(bot.getPosition().sub(0, 1, 0), pos -> {});
+        }
+
         if (target.distanceSquared(entityCreature.getPosition()) > 1 && entityCreature.getNavigator().setPathTo(target)) {
             if (System.currentTimeMillis() - lastBridging < bridgeBuffer) return;
             bot.setSprinting(true);
         }
+    }
+
+    private void tryPlaceBlock(Pos blockPos, Consumer<Pos> onPlace) {
+        Block block = bot.getInstance().getBlock(blockPos, Block.Getter.Condition.TYPE);
+        if (block.isAir()) {
+            //try place block (only bridge when the block below the target block is not the desired wool color)
+            int air = 0;
+            for (BlockFace blockFace : BlockFace.values()) {
+                Block other = bot.getInstance().getBlock(blockPos.relative(blockFace), Block.Getter.Condition.TYPE);
+                if (other.isAir()) {
+                    air++;
+                    continue;
+                }
+                if (blockFace == BlockFace.BOTTOM && other.id() != Block.WHITE_WOOL.id()) {
+                    air = BlockFace.values().length;
+                    break;
+                }
+            }
+            //place block
+            if (air < BlockFace.values().length) {
+                placeBlock(blockPos);
+                onPlace.accept(blockPos);
+            }
+        }
+    }
+
+    private void placeBlock(Pos blockPos) {
+        bot.getInstance().setBlock(blockPos, Block.WHITE_WOOL); //todo fetch team wool color
+        bot.setItemInHand(PlayerHand.MAIN, ItemStack.of(Material.WHITE_WOOL).builder().build());
+        bot.setSprinting(false);
+        bot.setSneaking(true);
+        bot.swingMainHand();
+        //update bedwars data
+        bot.getBedwarsData().setWoolBlocks(bot.getBedwarsData().getWoolBlocks() - 1);
     }
 
     @Override

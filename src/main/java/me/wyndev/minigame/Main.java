@@ -5,6 +5,8 @@ import io.github.togar2.pvp.feature.CombatFeatureSet;
 import io.github.togar2.pvp.feature.CombatFeatures;
 import me.wyndev.minigame.bot.PlayerBot;
 import me.wyndev.minigame.command.StopCommand;
+import me.wyndev.minigame.command.gamemode.GmcCommand;
+import me.wyndev.minigame.command.gamemode.GmsCommand;
 import me.wyndev.minigame.player.MinigamePlayer;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -70,6 +72,8 @@ public class Main {
 
     private static void registerCommands() {
         MinecraftServer.getCommandManager().register(new StopCommand());
+        MinecraftServer.getCommandManager().register(new GmcCommand());
+        MinecraftServer.getCommandManager().register(new GmsCommand());
     }
 
     private static InstanceContainer createHubInstance() {
