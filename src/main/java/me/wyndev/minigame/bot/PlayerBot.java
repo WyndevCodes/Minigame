@@ -1,8 +1,11 @@
 package me.wyndev.minigame.bot;
 
+import lombok.Getter;
+import lombok.Setter;
 import me.wyndev.minigame.Main;
 import me.wyndev.minigame.bot.customization.NametagGenerator;
 import me.wyndev.minigame.bot.pathfinding.goal.BedwarsMovementGoal;
+import me.wyndev.minigame.bot.pathfinding.goal.WalkAroundGoal;
 import me.wyndev.minigame.bot.pathfinding.navigator.BotNodeFollower;
 import me.wyndev.minigame.bot.pathfinding.navigator.BotNodeGenerator;
 import me.wyndev.minigame.player.Rank;
@@ -24,17 +27,25 @@ import java.util.Map;
 public class PlayerBot extends EntityCreature {
     private static int botCount = 0;
 
+    @Getter
     private final String username;
     private final Component displayName;
     private final String skinTexture;
     private final String skinSignature;
+    @Getter
+    private final PlayerSkin playerSkin;
 
     private final Rank rank;
+    @Getter
     private BedwarsData bedwarsData;
+
+    @Setter
+    private boolean shouldJump = false;
 
     public PlayerBot() {
         this(null, null);
         this.bedwarsData = new BedwarsData(0, 0, 0, 0, 0);
+
     }
 
     public PlayerBot(@Nullable String skinTexture, @Nullable String skinSignature) {
@@ -44,6 +55,7 @@ public class PlayerBot extends EntityCreature {
 
         this.skinTexture = skinTexture;
         this.skinSignature = skinSignature;
+        this.playerSkin = new PlayerSkin(skinTexture, skinSignature);
 
         this.rank = Rank.DEFAULT;
         displayName = Main.MINI_MESSAGE.deserialize(rank.prefix() + username);
@@ -53,8 +65,8 @@ public class PlayerBot extends EntityCreature {
 
         addAIGroup(
                 List.of(
-                        new BedwarsMovementGoal(this)
-                        //new WalkAroundGoal(this) // Walk around
+                        new BedwarsMovementGoal(this),
+                        new WalkAroundGoal(this) // Walk around when not playing
                 ),
                 List.of()
         );
@@ -79,7 +91,7 @@ public class PlayerBot extends EntityCreature {
         super.updateNewViewer(player);
 
         //add to ranked team
-        setTeam(rank.getTeam(MinecraftServer.getTeamManager()));
+        rank.getTeam(MinecraftServer.getTeamManager()).addMember(getUuid().toString());
 
         // Enable skin layers
         player.sendPacket(new EntityMetaDataPacket(getEntityId(), Map.of(17, Metadata.Byte((byte) 127))));
@@ -92,10 +104,12 @@ public class PlayerBot extends EntityCreature {
         player.sendPacket(new PlayerInfoRemovePacket(getUuid()));
     }
 
-    public BedwarsData getBedwarsData() {
-        return bedwarsData;
+    public boolean shouldJump() {
+        return shouldJump && isOnGround();
     }
 
+    @Setter
+    @Getter
     public static class BedwarsData {
 
         private int iron;
@@ -112,44 +126,21 @@ public class PlayerBot extends EntityCreature {
             this.woolBlocks = woolBlocks;
         }
 
-        public int getIron() {
-            return iron;
+        public void addIron(int iron) {
+            this.iron += iron;
         }
 
-        public void setIron(int iron) {
-            this.iron = iron;
+        public void addGold(int gold) {
+            this.gold += gold;
         }
 
-        public int getGold() {
-            return gold;
+        public void addDiamonds(int diamonds) {
+            this.diamonds += diamonds;
         }
 
-        public void setGold(int gold) {
-            this.gold = gold;
+        public void addEmeralds(int emeralds) {
+            this.emeralds += emeralds;
         }
 
-        public int getDiamonds() {
-            return diamonds;
-        }
-
-        public void setDiamonds(int diamonds) {
-            this.diamonds = diamonds;
-        }
-
-        public int getEmeralds() {
-            return emeralds;
-        }
-
-        public void setEmeralds(int emeralds) {
-            this.emeralds = emeralds;
-        }
-
-        public int getWoolBlocks() {
-            return woolBlocks;
-        }
-
-        public void setWoolBlocks(int woolBlocks) {
-            this.woolBlocks = woolBlocks;
-        }
     }
 }

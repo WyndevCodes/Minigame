@@ -40,6 +40,11 @@ public class BotNodeFollower implements NodeFollower {
             }
         }
 
+        if (bot.shouldJump()) {
+            jump(4f);
+            bot.setShouldJump(false);
+        }
+
         // the purpose of these few lines is to slow down entities when they reach their destination
         final double distSquared = dx * dx + dy * dy + dz * dz;
         if (speed > distSquared) {

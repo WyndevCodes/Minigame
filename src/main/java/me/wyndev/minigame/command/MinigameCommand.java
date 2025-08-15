@@ -5,6 +5,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import net.minestom.server.command.CommandSender;
 import net.minestom.server.command.builder.Command;
+import net.minestom.server.command.builder.CommandContext;
 import net.minestom.server.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -14,7 +15,15 @@ public abstract class MinigameCommand extends Command {
     public MinigameCommand(@NotNull String name, @Nullable String... aliases) {
         super(name, aliases);
         setCondition((sender, commandString) -> sender instanceof Player player && player.getPermissionLevel() >= requiredPermissionLevel());
+
+        setDefaultExecutor((sender, context) -> {
+            if (!hasPermission(sender)) return;
+
+            executeDefault(sender, context);
+        });
     }
+
+    public abstract void executeDefault(CommandSender sender, CommandContext context);
 
     /**
      * Gets the required permission level to use this command.

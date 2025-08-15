@@ -1,6 +1,7 @@
 plugins {
     id("java")
     id("com.gradleup.shadow") version "8.3.0"
+    id("io.freefair.lombok") version "8.14"
 }
 
 group = "me.wyndev"
@@ -11,6 +12,9 @@ dependencies {
     implementation("net.kyori:adventure-text-minimessage:4.24.0")
     implementation("org.apache.commons:commons-text:1.14.0")
     implementation("com.github.TogAr2:MinestomPvP:56a831b41c")
+    implementation("eu.koboo:stomui:1.0.2")
+    implementation("org.spongepowered:configurate-gson:4.2.0")
+    implementation("com.google.code.gson:gson:2.13.1")
 }
 
 java {

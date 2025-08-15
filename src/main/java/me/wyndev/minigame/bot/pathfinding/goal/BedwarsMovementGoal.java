@@ -1,8 +1,7 @@
 package me.wyndev.minigame.bot.pathfinding.goal;
 
+import me.wyndev.minigame.Main;
 import me.wyndev.minigame.bot.PlayerBot;
-import net.kyori.adventure.text.Component;
-import net.minestom.server.adventure.audience.Audiences;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.PlayerHand;
 import net.minestom.server.entity.ai.GoalSelector;
@@ -37,7 +36,7 @@ public class BedwarsMovementGoal extends GoalSelector {
 
     @Override
     public boolean shouldStart() {
-        return true;
+        return Main.getGameManager().STARTED && Main.getGameManager().getPlayerTeam(bot).isPresent();
     }
 
     @Override
@@ -57,10 +56,8 @@ public class BedwarsMovementGoal extends GoalSelector {
         }
 
         //before doing any pathfinding, attempt to bridge over the void if necessary
-        if (bot.getBedwarsData().getWoolBlocks() > 0) {
-            Pos blockPos = bot.getPosition().sub(bot.getPosition().facing().vec().withY(0).mul(0.1, 0, 0.1)).sub(0, 1, 0).asPos();
-            tryPlaceBlock(blockPos, (pos) -> lastBridging = System.currentTimeMillis());
-        }
+        Pos blockPos = bot.getPosition().sub(bot.getPosition().facing().vec().withY(0).mul(0.1, 0, 0.1)).sub(0, 1, 0).asPos();
+        tryPlaceBlock(blockPos, false, (pos) -> lastBridging = System.currentTimeMillis());
 
         Pos target;
 
@@ -68,7 +65,10 @@ public class BedwarsMovementGoal extends GoalSelector {
             //sit in generator
             if (bot.getBedwarsData().getIron() < ironThreshold) {
                 target = new Pos(-5, 65, 0); //todo fetch point from team
-                if (target.distanceSquared(entityCreature.getPosition()) > 1 && entityCreature.getNavigator().setPathTo(target)) return;
+                if (target.distanceSquared(entityCreature.getPosition()) > 1 && entityCreature.getNavigator().setPathTo(target)) {
+                    bot.setSprinting(true);
+                    return;
+                }
                 //temp iron collection
                 if (bot.getAliveTicks() % 20 != 0) return;
                 bot.getBedwarsData().setIron(bot.getBedwarsData().getIron() + 4);
@@ -77,8 +77,10 @@ public class BedwarsMovementGoal extends GoalSelector {
             } else {
                 //otherwise buy wool
                 target = new Pos(0, 65, 2); //todo fetch shopkeeper point from team
-                if (target.distanceSquared(entityCreature.getPosition()) > 1 && entityCreature.getNavigator().setPathTo(target))
+                if (target.distanceSquared(entityCreature.getPosition()) > 1 && entityCreature.getNavigator().setPathTo(target)) {
+                    bot.setSprinting(true);
                     return;
+                }
                 int ironPrice = 4; //todo fetch sell price
                 int ironSetsSpent = bot.getBedwarsData().getIron() / ironPrice; //todo fetch sell price
                 bot.getBedwarsData().setIron(bot.getBedwarsData().getIron() - (ironSetsSpent * ironPrice));
@@ -95,8 +97,9 @@ public class BedwarsMovementGoal extends GoalSelector {
 
         //more block placement logic, this time for moving upwards
         boolean isCloseNonY = Math.abs(target.x() - bot.getPosition().x()) < 1 && Math.abs(target.z() - bot.getPosition().z()) < 1;
-        if (isCloseNonY && Math.abs(target.y() - bot.getPosition().y()) > 1 && bot.getBedwarsData().getWoolBlocks() > 0) {
-            tryPlaceBlock(bot.getPosition().sub(0, 1, 0), pos -> {});
+        if (isCloseNonY && target.y() - bot.getPosition().y() > 1) {
+            bot.setShouldJump(true);
+            tryPlaceBlock(bot.getPosition().sub(0, 1, 0), true, pos -> {});
         }
 
         if (target.distanceSquared(entityCreature.getPosition()) > 1 && entityCreature.getNavigator().setPathTo(target)) {
@@ -105,7 +108,9 @@ public class BedwarsMovementGoal extends GoalSelector {
         }
     }
 
-    private void tryPlaceBlock(Pos blockPos, Consumer<Pos> onPlace) {
+    private void tryPlaceBlock(Pos blockPos, boolean placeOnNonWool, Consumer<Pos> onPlace) {
+        if (bot.getBedwarsData().getWoolBlocks() <= 0) return;
+
         Block block = bot.getInstance().getBlock(blockPos, Block.Getter.Condition.TYPE);
         if (block.isAir()) {
             //try place block (only bridge when the block below the target block is not the desired wool color)
@@ -116,7 +121,7 @@ public class BedwarsMovementGoal extends GoalSelector {
                     air++;
                     continue;
                 }
-                if (blockFace == BlockFace.BOTTOM && other.id() != Block.WHITE_WOOL.id()) {
+                if (!placeOnNonWool && blockFace == BlockFace.BOTTOM && other.id() != Block.WHITE_WOOL.id()) {
                     air = BlockFace.values().length;
                     break;
                 }
@@ -141,7 +146,7 @@ public class BedwarsMovementGoal extends GoalSelector {
 
     @Override
     public boolean shouldEnd() {
-        return false;
+        return Main.getGameManager().getActivePlayers().containsKey(bot);
     }
 
     @Override
