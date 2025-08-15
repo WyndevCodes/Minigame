@@ -6,19 +6,20 @@ import lombok.Setter;
 import me.wyndev.minigame.bedwars.player.BedwarsPlayer;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.minestom.server.coordinate.Pos;
+import net.minestom.server.entity.LivingEntity;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.inventory.Inventory;
 import net.minestom.server.inventory.InventoryType;
 
-import java.util.List;
+import java.util.*;
 
 @Getter
 @Setter
 public class Team {
+    private Map<LivingEntity, BedwarsPlayer> playerMap = new HashMap<>();
     @Getter(AccessLevel.NONE)
     private boolean bed = false;
     private net.minestom.server.scoreboard.Team mcTeam;
-    private List<BedwarsPlayer> players;
     private boolean alive = true;
     private Inventory teamChest = new Inventory(InventoryType.CHEST_3_ROW, "Team Chest");
     private final String displayName;
@@ -59,6 +60,10 @@ public class Team {
     }
 
     public List<BedwarsPlayer> getAlivePlayers() {
-        return players.stream().filter(BedwarsPlayer::isAlive).toList();
+        return playerMap.values().stream().filter(BedwarsPlayer::isAlive).toList();
+    }
+
+    public Collection<BedwarsPlayer> getPlayers() {
+        return playerMap.values();
     }
 }

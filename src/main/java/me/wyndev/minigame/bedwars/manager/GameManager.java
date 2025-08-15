@@ -66,7 +66,7 @@ public class GameManager {
 
     public GameManager(String mapName) {
         statsManager = new StatsManager();
-        worldManager = new WorldManager(mapName); //todo change
+        worldManager = new WorldManager("bedwars", mapName); //todo change
         playerInventoryManager = new PlayerInventoryManager();
         generatorManager = new GeneratorManager();
         itemAbilityDispatcher = new ItemAbilityDispatcher();
@@ -77,13 +77,17 @@ public class GameManager {
 
     public void queuePlayer(LivingEntity player) {
         if (!STARTED) {
-            queuedPlayers.add(player);
-            player.setInstance(getGameWorld(), getWorldConfig().spawnPlatformCenter.add(0, 1, 0));
-            if (waitingRunnable == null) {
-                if (queuedPlayers.size() >= getWorldConfig().minPlayers) {
-                    setGameState(GameState.STARTING);
-                    waitingRunnable = new WaitingRunnable();
+            if (queuedPlayers.size() < getWorldConfig().maxPlayers) {
+                queuedPlayers.add(player);
+                player.setInstance(getGameWorld(), getWorldConfig().spawnPlatformCenter.add(0, 1, 0));
+                if (waitingRunnable == null) {
+                    if (queuedPlayers.size() >= getWorldConfig().minPlayers) {
+                        setGameState(GameState.STARTING);
+                        waitingRunnable = new WaitingRunnable();
+                    }
                 }
+            } else if (player instanceof Player player1) {
+                player1.sendMessage(Msg.red("Sorry, the game is full!"));
             }
         } else if (player instanceof Player player1) {
             player1.sendMessage(Msg.red("Sorry, the game has started!"));
@@ -92,7 +96,6 @@ public class GameManager {
 
     public boolean removePlayerFromQueue(LivingEntity player) {
         boolean removed = queuedPlayers.remove(player);
-        if (player instanceof MinigamePlayer minigamePlayer) minigamePlayer.sendToLobby();
         if (queuedPlayers.size() < getWorldConfig().minPlayers) {
             if (waitingRunnable != null) {
                 waitingRunnable.stop();
@@ -120,6 +123,10 @@ public class GameManager {
         activePlayers.keySet().stream().filter(e -> e instanceof MinigamePlayer).map(e -> (MinigamePlayer) e).forEach(toRun);
     }
 
+    public boolean isPlayerInBedwars(LivingEntity livingEntity) {
+        return activePlayers.containsKey(livingEntity) || queuedPlayers.contains(livingEntity);
+    }
+
     @Nullable
     public BedwarsPlayer getBedwarsPlayerFor(LivingEntity livingEntity) {
         if (activePlayers.containsKey(livingEntity)) return activePlayers.get(livingEntity);
@@ -128,7 +135,10 @@ public class GameManager {
 
     public BedwarsPlayer getOrCreateBedwarsPlayerFor(LivingEntity livingEntity) {
         if (activePlayers.containsKey(livingEntity)) return activePlayers.get(livingEntity);
-        return activePlayers.put(livingEntity, new BedwarsPlayer(livingEntity));
+        BedwarsPlayer player = new BedwarsPlayer(livingEntity);
+        if (livingEntity instanceof PlayerBot bot) bot.setBedwarsPlayer(player);
+        activePlayers.put(livingEntity, player);
+        return player;
     }
 
     public String getUsernameFor(LivingEntity livingEntity) {
@@ -178,16 +188,15 @@ public class GameManager {
         // split players into teams
         teams.addAll(splitPlayersIntoTeams(queuedPlayers.stream().toList()));
 
-        teams.forEach(team -> team.getPlayers().forEach(player -> {
+        teams.forEach(team -> team.getPlayerMap().forEach((living, player) -> {
             player.addToTeam(team.getMcTeam());
-            if (player.getParentEntity() instanceof Player actualPlayer) {
-                actualPlayer.teleport(team.getSpawnLocation());
+            if (living instanceof MinigamePlayer actualPlayer) {
                 actualPlayer.setGameMode(GameMode.SURVIVAL);
+                Main.getSideboardManager().addPlayer(actualPlayer);
             }
-            if (player.getParentEntity() instanceof LivingEntity livingEntity) {
-                livingEntity.setItemInHand(PlayerHand.MAIN, Items.DEFAULT_SWORD);
-                setEquipment(livingEntity, player);
-            }
+            living.teleport(team.getSpawnLocation());
+            living.setItemInHand(PlayerHand.MAIN, Items.DEFAULT_SWORD);
+            setEquipment(living, player);
         }));
         generatorManager.registerTeamGenerators();
         generatorManager.registerDiamondGenerators();
@@ -235,16 +244,16 @@ public class GameManager {
                     .build();
             mcTeam.setSeeInvisiblePlayers(true);
             mcTeam.setAllowFriendlyFire(false);
-            List<BedwarsPlayer> teamPlayers = new ArrayList<>();
+            Map<LivingEntity, BedwarsPlayer> teamPlayers = new HashMap<>();
             int currentTeamSize = teamSize + (remainingPlayers > 0 ? 1 : 0);
             for (int i = 0; i < currentTeamSize; i++) {
                 if (playerIndex < players.size()) {
-                    BedwarsPlayer player = getOrCreateBedwarsPlayerFor(players.get(playerIndex));
-                    teamPlayers.add(player);
+                    teamPlayers.put(players.get(playerIndex), getOrCreateBedwarsPlayerFor(players.get(playerIndex)));
+                    if (players.get(playerIndex) instanceof PlayerBot bot) bot.setBedwarsTeam(team);
                     playerIndex++;
                 }
             }
-            team.setPlayers(teamPlayers);
+            team.setPlayerMap(teamPlayers);
             if (!team.getPlayers().isEmpty()) {
                 team.setMcTeam(mcTeam);
                 team.setBed(true);
@@ -273,7 +282,7 @@ public class GameManager {
             cleanup();
         }).delay(Duration.ofSeconds(10)).schedule();
         Team winningTeam = teams.stream().filter(Team::isAlive).findFirst().orElseThrow();
-        List<BedwarsPlayer> winners = winningTeam.getPlayers();
+        Collection<BedwarsPlayer> winners = winningTeam.getPlayers();
         forEachBedwarsMinigamePlayer(player -> {
             if (winners.stream().map(BedwarsPlayer::getUuid).toList().contains(player.getUuid())) {
                 player.showTitle(Title.title(Msg.gold("<b>VICTORY!"), Msg.mm(""), Title.Times.times(Duration.ofSeconds(1), Duration.ofSeconds(2), Duration.ofSeconds(1))));
@@ -339,22 +348,9 @@ public class GameManager {
      */
     public Optional<Team> getPlayerTeam(UUID player) {
         for (Team team : teams) {
-            for (BedwarsPlayer teamPlayer : team.getPlayers()) {
-                if (teamPlayer.getUuid().equals(player))
+            for (Map.Entry<LivingEntity, BedwarsPlayer> entry : team.getPlayerMap().entrySet()) {
+                if (entry.getKey().getUuid().equals(player) || entry.getValue().getUuid().equals(player))
                     return Optional.of(team);
-            }
-        }
-        return Optional.empty();
-    }
-
-    /**
-     * Gets the {@link BedwarsPlayer} if they are on a team
-     */
-    public Optional<BedwarsPlayer> getPlayer(UUID uuid) {
-        for (Team team : teams) {
-            for (BedwarsPlayer teamPlayer : team.getPlayers()) {
-                if (teamPlayer.getUuid().equals(uuid))
-                    return Optional.of(teamPlayer);
             }
         }
         return Optional.empty();
@@ -367,10 +363,10 @@ public class GameManager {
             p.playSound(Sound.sound(SoundEvent.ENTITY_GENERIC_EXPLODE, Sound.Source.PLAYER, 1f, 100f));
             p.sendMessage(message);
         });
-        for (BedwarsPlayer bedwarsPlayer : team.getPlayers()) {
+        for (Map.Entry<LivingEntity, BedwarsPlayer> entry : team.getPlayerMap().entrySet()) {
             Title title = Title.title(Msg.red("<b>BED DESTROYED!"), Msg.white("You will no longer respawn!"),
                     Title.Times.times(Ticks.duration(10L), Ticks.duration(100L), Ticks.duration(20L)));
-            if (bedwarsPlayer.getParentEntity() instanceof Player p) {
+            if (entry.getKey() instanceof Player p) {
                 p.showTitle(title);
             }
         }
@@ -455,6 +451,8 @@ public class GameManager {
             System.out.println("unknown damage type: " + damageType.key());
             message = message.append(Msg.grey("died under mysterious circumstances"));
         }
+
+        if (dead instanceof PlayerBot bot) bot.resetBedwarsData();
 
         dead.teleport(getWorldConfig().spawnPlatformCenter);
         if (finalKill) {

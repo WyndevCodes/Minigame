@@ -165,8 +165,8 @@ public class Items {
     public static ItemStack MENU_TNT = createItem("TNT", "TNT", Material.TNT, false, false, List.of(), new HashMap<>());
 
     // currency items
-    public static ItemStack IRON = createItem("Iron", "IRON", Material.IRON_NUGGET, false, false, List.of(), new HashMap<>());
-    public static ItemStack GOLD = createItem("Gold", "GOLD", Material.GOLD_NUGGET, false, false, List.of(), new HashMap<>());
+    public static ItemStack IRON = createItem("Iron", "IRON", Material.IRON_INGOT, false, false, List.of(), new HashMap<>());
+    public static ItemStack GOLD = createItem("Gold", "GOLD", Material.GOLD_INGOT, false, false, List.of(), new HashMap<>());
     public static ItemStack DIAMOND = createItem("Diamond", "DIAMOND", Material.DIAMOND, false, false, List.of(), new HashMap<>());
     public static ItemStack EMERALD = createItem("Emerald", "EMERALD", Material.EMERALD, false, false, List.of(), new HashMap<>());
 

@@ -7,6 +7,7 @@ import me.wyndev.minigame.bedwars.data.state.ArmorLevel;
 import me.wyndev.minigame.bedwars.data.state.AxeLevel;
 import me.wyndev.minigame.bedwars.data.state.PickaxeLevel;
 import me.wyndev.minigame.bot.PlayerBot;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.PlayerSkin;
@@ -68,6 +69,7 @@ public class BedwarsPlayer {
     }
 
     public void addToTeam(Team team) {
-        team.addMember(this.parentEntity instanceof Player player ? player.getUsername() : getUuid().toString());
+        if (this.parentEntity instanceof PlayerBot bot) bot.getRank().getTeam(MinecraftServer.getTeamManager()).removeMember(bot.getUsername());
+        team.addMember(this.username.equals("Unnamed") ? getUuid().toString() : this.username);
     }
 }

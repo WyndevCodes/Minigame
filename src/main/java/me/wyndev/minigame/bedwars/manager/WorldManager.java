@@ -9,11 +9,13 @@ import net.minestom.server.coordinate.BlockVec;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.event.Event;
 import net.minestom.server.event.EventNode;
+import net.minestom.server.instance.Chunk;
 import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.anvil.AnvilLoader;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockFace;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,6 +26,7 @@ public class WorldManager {
     private final EventNode<Event> node;
     private final List<BedwarsEvent<?>> eventList;
     private final String gameWorldName;
+    private final String gameName;
 
     @Getter
     private Config worldConfig;
@@ -31,10 +34,12 @@ public class WorldManager {
     @Getter
     private InstanceContainer gameWorld;
     
-    public WorldManager(String gameWorldName) {
+    public WorldManager(String gameName, String gameWorldName) {
+        this.gameName = gameName;
         this.gameWorldName = gameWorldName;
-        this.worldConfig = Config.importConfig(getGameMapData("bedwars", gameWorldName));
+        this.worldConfig = Config.importConfig(getGameMapData(gameName, gameWorldName));
         node = EventNode.all("bedwars-" + gameWorldName);
+        MinecraftServer.getGlobalEventHandler().addChild(node);
         eventList = new ArrayList<>();
     }
 
@@ -55,9 +60,20 @@ public class WorldManager {
 
     public void loadWorld() {
         gameWorld = MinecraftServer.getInstanceManager().createInstanceContainer(DIMENSION_TYPE);
-        gameWorld.setChunkLoader(new AnvilLoader(getWorldFilePath("maps/" + gameWorldName)));
+        gameWorld.setChunkLoader(new AnvilLoader(getWorldFilePath("maps" + File.separator + gameName + File.separator + gameWorldName)));
         this.gameWorld.setTimeRate(0);
         this.gameWorld.setTime(6000);
+
+        //load chunks
+        Pos center = worldConfig.spawnPlatformCenter;
+        int centerX = center.chunkX();
+        int centerZ = center.chunkZ();
+        for (int x = centerX - 20; x <= centerX + 20; x++) {
+            for (int z = centerZ - 20; z <= centerZ + 20; z++) {
+                gameWorld.loadChunk(x, z);
+            }
+        }
+
         createSpawnPlatform();
 
         eventList.add(new ArmorEquipListener(gameWorld));

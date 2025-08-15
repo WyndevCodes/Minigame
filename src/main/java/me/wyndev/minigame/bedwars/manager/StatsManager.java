@@ -18,6 +18,6 @@ public class StatsManager {
     }
 
     public BedwarsStats getStats(UUID uuid) {
-        return stats.get(uuid);
+        return stats.getOrDefault(uuid, new BedwarsStats(0, 0, 0, 0, 0, 0));
     }
 }

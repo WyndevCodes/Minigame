@@ -23,8 +23,7 @@ public class BlockBreakListener extends BedwarsEvent<PlayerBlockBreakEvent> {
 
     public void onBlockBreak(PlayerBlockBreakEvent e) {
         Player player = e.getPlayer();
-        BedwarsPlayer bedwarsPlayer = Main.getGameManager().getBedwarsPlayerFor(player);
-        if (bedwarsPlayer == null) return;
+        if (!Main.getGameManager().isPlayerInBedwars(player)) return;
 
         if (player.getGameMode() == GameMode.CREATIVE) return;
         if (Main.getGameManager().getSpectators().contains(player.getUuid())) {
@@ -33,6 +32,9 @@ public class BlockBreakListener extends BedwarsEvent<PlayerBlockBreakEvent> {
             return;
         }
         if (e.getBlock().name().contains("bed")) {
+            BedwarsPlayer bedwarsPlayer = Main.getGameManager().getBedwarsPlayerFor(player);
+            if (bedwarsPlayer == null) return;
+
             if (Main.getGameManager().getPlayerTeam(player).isPresent()) {
                 if (Main.getGameManager().getPlayerTeam(player).get().getBedType().key().equals(e.getBlock().key())) {
                     e.setCancelled(true);

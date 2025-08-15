@@ -29,7 +29,7 @@ public class BotNodeFollower implements NodeFollower {
         double dyLook = lookAt.y() - position.y();
         double dzLook = lookAt.z() - position.z();
 
-        if (bot.isSneaking()) {
+        if (bot.shouldMoveBackwards()) {
             dxLook = -dxLook;
             dyLook = -dyLook;
             dzLook = -dzLook;

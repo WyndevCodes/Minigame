@@ -16,10 +16,9 @@ public class DeathListener extends BedwarsEvent<EntityPreDeathEvent> {
     }
 
     public void onDeath(EntityPreDeathEvent event) {
-        event.setCancelDeath(true);
         if (!(event.getEntity() instanceof LivingEntity victim)) return;
-        BedwarsPlayer player = Main.getGameManager().getBedwarsPlayerFor(victim);
-        if (player == null) return;
+        if (!Main.getGameManager().isPlayerInBedwars(victim)) return;
+        event.setCancelDeath(true);
         if (event.getDamage().getAttacker() instanceof LivingEntity livingEntity) {
             BedwarsPlayer damager = Main.getGameManager().getBedwarsPlayerFor(livingEntity);
             if (damager != null) {

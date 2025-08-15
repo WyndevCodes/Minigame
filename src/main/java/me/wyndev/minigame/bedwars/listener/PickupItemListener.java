@@ -2,6 +2,7 @@ package me.wyndev.minigame.bedwars.listener;
 
 import me.wyndev.minigame.Main;
 import me.wyndev.minigame.bedwars.util.Items;
+import me.wyndev.minigame.bot.PlayerBot;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.item.PickupItemEvent;
@@ -31,6 +32,19 @@ public class PickupItemListener extends BedwarsEvent<PickupItemEvent> {
             }
             final ItemStack itemStack = event.getItemEntity().getItemStack();
             event.setCancelled(!player.getInventory().addItemStack(itemStack));
+        } else if (entity instanceof PlayerBot bot) {
+            if (Main.getGameManager().getSpectators().contains(bot.getUuid())) {
+                event.setCancelled(true);
+            }
+            final ItemStack item = event.getItemEntity().getItemStack();
+            if (item.hasTag(Items.NAMESPACE)) {
+                switch (item.getTag(Items.NAMESPACE)) {
+                    case "IRON" -> bot.getBedwarsData().addIron(item.amount());
+                    case "GOLD" -> bot.getBedwarsData().addGold(item.amount());
+                    case "DIAMOND" -> bot.getBedwarsData().addDiamonds(item.amount());
+                    case "EMERALD" -> bot.getBedwarsData().addEmeralds(item.amount());
+                }
+            }
         }
     }
 

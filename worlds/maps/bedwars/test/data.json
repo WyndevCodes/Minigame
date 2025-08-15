@@ -6,7 +6,7 @@
   "max_players": 4,
   "bridge_egg_block_despawn": 3600,
   "bridge_egg_block_limit": 32,
-  "spawn_platform_center": "Pos{x=0.5, y=30, z=0.5, yaw=180, pitch=0}",
+  "spawn_platform_center": "Pos{x=129.5, y=62, z=149.5, yaw=180, pitch=0}",
   "npc_skins": {
     "item_shop": {
       "textures": "ewogICJ0aW1lc3RhbXAiIDogMTY2MjQ2NzA5Njc1NywKICAicHJvZmlsZUlkIiA6ICJmNTgyNGRmNGIwMTU0MDA4OGRhMzUyYTQxODU1MDQ0NCIsCiAgInByb2ZpbGVOYW1lIiA6ICJGb3hHYW1lcjUzOTIiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTI5YWI4YmRiMjI4ZTQ3MjZiNzQ1MzZhY2EwNTlhMTZjYWNjNzBjNThlNGEyZGFhMTQzZDIxOWYzNzRhOGI0YSIKICAgIH0KICB9Cn0=",
@@ -37,16 +37,17 @@
   },
   "generators": {
     "diamond": [
-      "Pos{x=0.5, y=0, z=-34.5, yaw=0, pitch=0}",
-      "Pos{x=-34.5, y=0, z=0.5, yaw=0, pitch=0}",
-      "Pos{x=0.5, y=0, z=35.5, yaw=0, pitch=0}",
-      "Pos{x=35.5, y=0, z=0.5, yaw=0, pitch=0}"
+      "Pos{x=77.5, y=8, z=202.5, yaw=0, pitch=0}",
+      "Pos{x=182.5, y=8, z=202.5, yaw=0, pitch=0}",
+      "Pos{x=76.5, y=8, z=97.5, yaw=0, pitch=0}",
+      "Pos{x=181.5, y=8, z=96.5, yaw=0, pitch=0}"
     ],
     "emerald": [
-      "Pos{x=-13.5, y=0, z=-13.5, yaw=0, pitch=0}",
-      "Pos{x=-13.5, y=0, z=14.5, yaw=0, pitch=0}",
-      "Pos{x=14.5, y=0, z=14.5, yaw=0, pitch=0}",
-      "Pos{x=14.5, y=0, z=-13.5, yaw=0, pitch=0}"
+      "Pos{x=114.5, y=8, z=164.5, yaw=0, pitch=0}",
+      "Pos{x=144.5, y=8, z=134.5, yaw=0, pitch=0}",
+      "Pos{x=144.5, y=8, z=164.5, yaw=0, pitch=0}",
+      "Pos{x=114.5, y=8, z=134.5, yaw=0, pitch=0}",
+      "Pos{x=129.5, y=9, z=149.5, yaw=0, pitch=0}"
     ]
   },
   "teams": {
@@ -57,12 +58,12 @@
       "glass_item": "red_stained_glass",
       "wool_item": "red_wool",
       "terracotta_item": "red_terracotta",
-      "spawn_location": "Pos{x=-62.5, y=0, z=0.5, yaw=90, pitch=0}",
-      "generation_location": "Pos{x=-65.5, y=0, z=0.5, yaw=0, pitch=90}",
-      "item_shop_location": "Pos{x=-60.5, y=0, z=5.5, yaw=180, pitch=0}",
-      "team_shop_location": "Pos{x=-62.5, y=0, z=5.5, yaw=180, pitch=0}",
-      "team_chest_location": "Pos{x=-61, y=0, z=-5, yaw=0, pitch=90}",
-      "bed_location": "Pos{x=-55, y=0, z=0, yaw=0, pitch=90}"
+      "spawn_location": "Pos{x=128.5, y=5, z=56.5, yaw=0, pitch=0}",
+      "generation_location": "Pos{x=128.5, y=5, z=45.5, yaw=0, pitch=90}",
+      "item_shop_location": "Pos{x=135.5, y=5, z=54.5, yaw=90, pitch=0}",
+      "team_shop_location": "Pos{x=120.5, y=5, z=54.5, yaw=-90, pitch=0}",
+      "team_chest_location": "Pos{x=120, y=5, z=59, yaw=0, pitch=90}",
+      "bed_location": "Pos{x=128, y=5, z=64, yaw=0, pitch=90}"
     },
     "Yellow Team": {
       "tab_prefix": "<yellow>[Y] ",
@@ -71,12 +72,12 @@
       "glass_item": "yellow_stained_glass",
       "wool_item": "yellow_wool",
       "terracotta_item": "yellow_terracotta",
-      "spawn_location": "Pos{x=0.5, y=0, z=-62.5, yaw=0, pitch=0}",
-      "generation_location": "Pos{x=0.5, y=0, z=-65.5, yaw=0, pitch=0}",
-      "item_shop_location": "Pos{x=-4.5, y=0, z=-60.5, yaw=-90, pitch=0}",
-      "team_shop_location": "Pos{x=-4.5, y=0, z=-62.5, yaw=-90, pitch=0}",
-      "team_chest_location": "Pos{x=5, y=0, z=-61, yaw=0, pitch=0}",
-      "bed_location": "Pos{x=0, y=0, z=-55, yaw=0, pitch=90}"
+      "spawn_location": "Pos{x=34.5, y=5, z=150.5, yaw=-90, pitch=0}",
+      "generation_location": "Pos{x=23.5, y=5, z=150.5, yaw=0, pitch=90}",
+      "item_shop_location": "Pos{x=32.5, y=5, z=143.5, yaw=0, pitch=0}",
+      "team_shop_location": "Pos{x=32.5, y=5, z=158.5, yaw=180, pitch=0}",
+      "team_chest_location": "Pos{x=37, y=5, z=158, yaw=0, pitch=90}",
+      "bed_location": "Pos{x=42, y=5, z=150, yaw=0, pitch=90}"
     },
     "Green Team": {
       "tab_prefix": "<green>[G] ",
@@ -85,12 +86,12 @@
       "glass_item": "lime_stained_glass",
       "wool_item": "lime_wool",
       "terracotta_item": "lime_terracotta",
-      "spawn_location": "Pos{x=61.5, y=0, z=0.5, yaw=90, pitch=0}",
-      "generation_location": "Pos{x=66.5, y=0, z=0.5, yaw=90, pitch=0}",
-      "item_shop_location": "Pos{x=61.5, y=0, z=-4.5, yaw=0, pitch=0}",
-      "team_shop_location": "Pos{x=63.5, y=0, z=-4.5, yaw=0, pitch=0}",
-      "team_chest_location": "Pos{x=61, y=0, z=5, yaw=0, pitch=90}",
-      "bed_location": "Pos{x=55, y=0, z=0, yaw=0, pitch=90}"
+      "spawn_location": "Pos{x=128.5, y=5, z=244.5, yaw=180, pitch=0}",
+      "generation_location": "Pos{x=128.5, y=5, z=255.5, yaw=0, pitch=90}",
+      "item_shop_location": "Pos{x=121.5, y=5, z=246.5, yaw=-90, pitch=0}",
+      "team_shop_location": "Pos{x=136.5, y=5, z=246.5, yaw=90, pitch=0}",
+      "team_chest_location": "Pos{x=136, y=5, z=241, yaw=0, pitch=90}",
+      "bed_location": "Pos{x=128, y=5, z=236, yaw=0, pitch=90}"
     },
     "Blue Team": {
       "tab_prefix": "<blue>[B] ",
@@ -99,12 +100,12 @@
       "glass_item": "blue_stained_glass",
       "wool_item": "blue_wool",
       "terracotta_item": "blue_terracotta",
-      "spawn_location": "Pos{x=0.5, y=0, z=62.5, yaw=180, pitch=0}",
-      "generation_location": "Pos{x=0.5, y=0, z=66.5, yaw=0, pitch=0}",
-      "item_shop_location": "Pos{x=5.5, y=0, z=61.5, yaw=90, pitch=0}",
-      "team_shop_location": "Pos{x=5.5, y=0, z=63.5, yaw=90, pitch=0}",
-      "team_chest_location": "Pos{x=-5, y=0, z=61, yaw=0, pitch=90}",
-      "bed_location": "Pos{x=0, y=0, z=55, yaw=0, pitch=90}"
+      "spawn_location": "Pos{x=222.5, y=5, z=150.5, yaw=90, pitch=0}",
+      "generation_location": "Pos{x=233.5, y=5, z=150.5, yaw=0, pitch=90}",
+      "item_shop_location": "Pos{x=224.5, y=5, z=157.5, yaw=180, pitch=0}",
+      "team_shop_location": "Pos{x=224.5, y=5, z=142.5, yaw=0, pitch=0}",
+      "team_chest_location": "Pos{x=219, y=5, z=142, yaw=0, pitch=90}",
+      "bed_location": "Pos{x=214, y=5, z=150, yaw=0, pitch=90}"
     }
   }
 }

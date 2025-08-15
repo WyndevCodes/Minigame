@@ -13,7 +13,6 @@ public class StopCommand extends MinigameCommand {
     @Override
     public void executeDefault(CommandSender sender, CommandContext context) {
         sender.sendMessage(Main.MINI_MESSAGE.deserialize("<red>Stopping server..."));
-        Main.shutdown();
         MinecraftServer.stopCleanly();
     }
 

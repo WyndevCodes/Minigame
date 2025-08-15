@@ -12,9 +12,11 @@ import me.wyndev.minigame.bedwars.blockhandler.ChestBlockHandler;
 import me.wyndev.minigame.bedwars.blockhandler.EnderChestBlockHandler;
 import me.wyndev.minigame.bedwars.command.DebugCommand;
 import me.wyndev.minigame.bedwars.command.ItemCommand;
-import me.wyndev.minigame.bedwars.config.Config;
 import me.wyndev.minigame.bedwars.manager.GameManager;
 import me.wyndev.minigame.bedwars.manager.NPCManager;
+import me.wyndev.minigame.bedwars.npc.NPC;
+import me.wyndev.minigame.bedwars.npc.NPCListener;
+import me.wyndev.minigame.bedwars.util.Msg;
 import me.wyndev.minigame.bot.PlayerBot;
 import me.wyndev.minigame.command.PlayCommand;
 import me.wyndev.minigame.command.StopCommand;
@@ -27,7 +29,10 @@ import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Pos;
+import net.minestom.server.entity.PlayerSkin;
+import net.minestom.server.event.entity.EntityAttackEvent;
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
+import net.minestom.server.event.player.PlayerEntityInteractEvent;
 import net.minestom.server.extras.MojangAuth;
 import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.anvil.AnvilLoader;
@@ -37,7 +42,6 @@ import net.minestom.server.world.DimensionType;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.Reader;
 
 public class Main {
 
@@ -73,6 +77,9 @@ public class Main {
                 DimensionType.builder().ambientLight(2.0f).build()
         );
 
+        //load menu events
+        VIEW_REGISTRY.enable();
+
         //register initial managers
         npcManager = new NPCManager();
         sideboardManager = new SideboardManager();
@@ -94,7 +101,22 @@ public class Main {
             event.getPlayer().setRespawnPoint(hubSpawn);
             event.getPlayer().setPermissionLevel(4);
         });
+        NPCListener npcListener = new NPCListener();
+        MinecraftServer.getGlobalEventHandler().addListener(PlayerEntityInteractEvent.class, npcListener::onInteract);
+        MinecraftServer.getGlobalEventHandler().addListener(EntityAttackEvent.class, npcListener::onAttack);
         MinecraftServer.getGlobalEventHandler().addChild(featureSet.createNode());
+
+        //create NPC at hub NPC point
+        Pos bedwarsJoinNPCPos = new Pos(-37.5, 65, 0.5, -90, 0);
+        NPC.ofHumanoid(bedwarsJoinNPCPos, hub)
+                .interactTrigger((npc, npcInteractType, player) -> gameManager.queuePlayer(player))
+                .skin(new PlayerSkin(
+                        "dfa9ce7a68e59f30bc5c630b9e31ac67862596a02bb789c3e1f39ae63685c830",
+                        "fM2IlWSB+I0btUyLurY8cQmb6V9nzCVXSHMdcX1jIGuZpPLOpcQx/6iGfpbXTVodJ0afCPn2Fcpb2SxPqK6ABjUoUMb04DeEPAB7Ngclxjwlt10uJzurJT9TPq5R1vMFo6fXugmMJAEHBGkeQ6tyJZMTMqJglGQg83TVocdkZQONBtgIqGgEFgYGbJ7Ky+qL0bZQDoQli39fsK9+CdaaStJApUuweBtvzeZjEUyeQnMdbO7MNolHHQah6qJfvi3rc8ruzwdgiqqvs6/rHKC7E2F1GiedbyymgV78fpj0flxDjdsc8xn8tD8XagSnpHHK2kWsxsd23R8g7DRYPYcTMUWUvQdCyALt5Xj8HdtKRacKNHaOZL5OUgNvoKT/KTvfSSmAiCrhJT5YwPUsNGwNluFCvHn8ufLkq1YPmVm/vh5F+LHZalW02sUw/d66o06BF5+2YR8gaHoNaG/evAw/P6mDFNxX/iE/9OWuWcqXGY8UZLxghirj0ZN6nnx950HicYEoLh09/Q1mLo9e5gOPwm2p/CknZN+pUrFbeVhSE/GPDFjOrQlDiDOd/NxrBHajDJob+I4trSFnsd4AdoG8URU2VaTqs6sS2hlMaaOUYvhROpu/Gx2bsUsi3mgayJtTVkUvQ2AD/OiLG+AlEr5LyE1gU+k7CHaYZaaAuUdreKM="
+                ))
+                .lines(Msg.red("<b>BEDWARS"))
+                .invulnerable()
+                .build();
 
         //register commands
         registerCommands();
@@ -102,19 +124,25 @@ public class Main {
         //load bedwars
         loadBedwars();
 
+        //shutdown task queue
+        MinecraftServer.getSchedulerManager().buildShutdownTask(Main::shutdown);
+
         //create some random bots to walk around the hub (test non-game movement)
         for (int i = 0; i < 3; i++) {
             new PlayerBot().setInstance(hub, hubSpawn);
         }
 
-        //load a bot and have it join bedwars
-        PlayerBot bedwarsBot = new PlayerBot();
-        bedwarsBot.setInstance(hub, hubSpawn);
-        Main.getGameManager().queuePlayer(bedwarsBot);
+        //load 3 bots and have them join bedwars
+        for (int i = 0; i < 3; i++) {
+            PlayerBot bedwarsBot = new PlayerBot();
+            bedwarsBot.setInstance(hub, hubSpawn);
+            gameManager.queuePlayer(bedwarsBot);
+        }
     }
 
     public static void shutdown() {
         gameManager.cleanup();
+        VIEW_REGISTRY.disable();
     }
 
     public static String getWorldFilePath(String worldFileName) {

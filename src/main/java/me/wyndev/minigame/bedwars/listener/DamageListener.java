@@ -16,10 +16,9 @@ public class DamageListener extends BedwarsEvent<FinalDamageEvent> {
     }
 
     public void onDamage(FinalDamageEvent event) {
-        BedwarsPlayer player = Main.getGameManager().getBedwarsPlayerFor(event.getEntity());
-        if (player == null) return;
-        
-        if (Main.getGameManager().getSpectators().contains(player.getUuid())) {
+        if (!Main.getGameManager().isPlayerInBedwars(event.getEntity())) return;
+
+        if (Main.getGameManager().getSpectators().contains(event.getEntity().getUuid())) {
             event.setCancelled(true);
             return;
         }
@@ -27,6 +26,9 @@ public class DamageListener extends BedwarsEvent<FinalDamageEvent> {
             event.setCancelled(true);
             return;
         }
+
+        BedwarsPlayer player = Main.getGameManager().getBedwarsPlayerFor(event.getEntity());
+        if (player == null) return;
 
         if (event.getDamage().getAttacker() instanceof LivingEntity livingEntity) {
             BedwarsPlayer damager = Main.getGameManager().getBedwarsPlayerFor(livingEntity);

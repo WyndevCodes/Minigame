@@ -1,5 +1,6 @@
 package me.wyndev.minigame.bot.pathfinding.navigator;
 
+import it.unimi.dsi.fastutil.booleans.BooleanDoubleImmutablePair;
 import me.wyndev.minigame.bot.PlayerBot;
 import net.minestom.server.collision.BoundingBox;
 import net.minestom.server.coordinate.Point;
@@ -9,10 +10,7 @@ import net.minestom.server.entity.pathfinding.generators.NodeGenerator;
 import net.minestom.server.instance.block.Block;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.OptionalDouble;
-import java.util.Set;
+import java.util.*;
 
 public class BotNodeGenerator implements NodeGenerator {
     private PNode tempNode = null;
@@ -20,6 +18,7 @@ public class BotNodeGenerator implements NodeGenerator {
     private final static int MAX_FALL_DISTANCE = 5;
 
     private final PlayerBot bot;
+    private boolean gravitySnappedToVoid = false;
 
     public BotNodeGenerator(PlayerBot bot) {
         this.bot = bot;
@@ -44,6 +43,7 @@ public class BotNodeGenerator implements NodeGenerator {
 
                 var optionalFloorPointY = gravitySnap(getter, floorPointX, floorPointY, floorPointZ, boundingBox, MAX_FALL_DISTANCE);
                 if (optionalFloorPointY.isEmpty()) continue;
+                if (gravitySnappedToVoid) cost *= 3;
                 floorPointY = optionalFloorPointY.getAsDouble();
 
                 var floorPoint = new Vec(floorPointX, floorPointY, floorPointZ);
@@ -55,6 +55,7 @@ public class BotNodeGenerator implements NodeGenerator {
                     Point jumpPoint = new Vec(current.blockX() + 0.5 + x, current.blockY() + i, current.blockZ() + 0.5 + z);
                     OptionalDouble jumpPointY = gravitySnap(getter, jumpPoint.x(), jumpPoint.y(), jumpPoint.z(), boundingBox, MAX_FALL_DISTANCE);
                     if (jumpPointY.isEmpty()) continue;
+                    if (gravitySnappedToVoid) cost *= 3;
                     jumpPoint = jumpPoint.withY(jumpPointY.getAsDouble());
 
                     if (!floorPoint.sameBlock(jumpPoint)) {
@@ -116,6 +117,7 @@ public class BotNodeGenerator implements NodeGenerator {
 
     @Override
     public @NotNull OptionalDouble gravitySnap(Block.@NotNull Getter getter, double pointOrgX, double pointOrgY, double pointOrgZ, @NotNull BoundingBox boundingBox, double maxFall) {
+        gravitySnappedToVoid = false;
         final double pointX = (int) Math.floor(pointOrgX) + 0.5;
         final double pointY = (int) Math.floor(pointOrgY);
         final double pointZ = (int) Math.floor(pointOrgZ) + 0.5;
@@ -123,17 +125,27 @@ public class BotNodeGenerator implements NodeGenerator {
         //Chunk c = instance.getChunkAt(pointX, pointZ);
         //if (c == null) return OptionalDouble.of(pointY);
 
+        Block finalBlockData = null;
         for (int axis = 1; axis <= maxFall; ++axis) {
             pointIterator.reset(boundingBox, pointX, pointY, pointZ, BoundingBox.AxisMask.Y, -axis);
 
             while (pointIterator.hasNext()) {
                 var block = pointIterator.next();
-                if (bot.getBedwarsData().getWoolBlocks() > 0 ||
-                        getter.getBlock(block.blockX(), block.blockY(), block.blockZ(), Block.Getter.Condition.TYPE).isSolid()) {
+                var blockData = getter.getBlock(block.blockX(), block.blockY(), block.blockZ(), Block.Getter.Condition.TYPE);
+                if (blockData.isSolid()) {
                     return OptionalDouble.of(block.blockY() + 1);
+                }
+                if (axis == maxFall) {
+                    finalBlockData = blockData;
                 }
             }
         }
+
+        if (finalBlockData != null && finalBlockData.isAir() && bot.getBedwarsData().getWoolBlocks() > 0) {
+            gravitySnappedToVoid = true;
+            return OptionalDouble.of(pointY);
+        }
+
         return OptionalDouble.empty();
     }
 }

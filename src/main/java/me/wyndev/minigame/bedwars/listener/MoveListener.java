@@ -18,11 +18,10 @@ public class MoveListener extends BedwarsEvent<PlayerMoveEvent> {
     }
 
     public void onMove(PlayerMoveEvent event) {
-        BedwarsPlayer player = Main.getGameManager().getBedwarsPlayerFor(event.getPlayer());
-        if (player == null) return;
+        if (!Main.getGameManager().isPlayerInBedwars(event.getPlayer())) return;
         if (!Main.getGameManager().STARTED) return;
         if (event.getNewPosition().y() <= -40) {
-            if (Main.getGameManager().getSpectators().contains(player.getUuid())) {
+            if (Main.getGameManager().getSpectators().contains(event.getPlayer().getUuid())) {
                 event.getPlayer().teleport(Main.getGameManager().getWorldConfig().spawnPlatformCenter);
                 event.setCancelled(true);
             } else {
@@ -32,7 +31,7 @@ public class MoveListener extends BedwarsEvent<PlayerMoveEvent> {
         }
         if (event.getPlayer().getGameMode() == GameMode.CREATIVE) return;
         Pos spawn = Main.getGameManager().getWorldConfig().spawnPlatformCenter;
-        if (distanceSquared(event.getNewPosition().x(), spawn.x(), event.getNewPosition().z(), spawn.z()) > 11025 || event.getNewPosition().y() >= 50) {
+        if (distanceSquared(event.getNewPosition().x(), spawn.x(), event.getNewPosition().z(), spawn.z()) > 150 * 150 || event.getNewPosition().y() >= 50) {
             event.setCancelled(true);
             event.getPlayer().sendMessage(Msg.whoops("You cannot travel too far from the map!"));
         }
